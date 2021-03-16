@@ -25,4 +25,9 @@ app.prepare().then(function(){
 
     })
 
+}).catch(() => {
+
+    console.log("Error getting up the server")
+    process.exit(0);
+
 })

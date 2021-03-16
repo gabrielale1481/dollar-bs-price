@@ -12,7 +12,6 @@ const getDifferenceFromLastPrice = function( historical, current ){
     if( !last ) return {};
 
     const percentage = current.number * 100 / last.number - 100;
-    console.log(percentage);
     const sign = Math.sign(percentage);
 
     const types = {
