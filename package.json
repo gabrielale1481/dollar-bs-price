@@ -3,13 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "nodemon --watch src/server --exec \"cls && node src/server\"",
     "build": "next build",
-    "start": "next start"
+    "start": "NODE_ENV=production node src/server"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.3",
+    "dollar-bs-price-scrapper": "^1.0.0",
     "next": "10.0.9",
+    "node-cron": "^3.0.0",
     "react": "17.0.1",
-    "react-dom": "17.0.1"
+    "react-dom": "17.0.1",
+    "socket.io": "^4.0.0",
+    "socket.io-client": "^4.0.0"
   }
 }
