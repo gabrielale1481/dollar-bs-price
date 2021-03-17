@@ -15,6 +15,10 @@ app.prepare().then(function(){
     const server = http.createServer(handler);
     const sockets = webSockets(server);
 
+    // cron.schedule("*/5 * * * * *", function(){
+    //     sockets.emit("dollarUpdateFails", 2);
+    // })
+
     cron.schedule("0 9,13 * * 1-5", require("./task")(sockets));
 
     server.listen(SERVER_PORT, function(err){

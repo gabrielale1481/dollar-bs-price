@@ -27,45 +27,61 @@ const getDifferenceFromLastPrice = function( historical, current ){
 
 }
 
+const secs = n => new Promise(resolve => setTimeout(resolve, n * 1000));
+
 module.exports = sockets => async () => {
 
-    sockets.emit("updatingDollar");
+    let retry = 0, maxRetry = 3, success;
 
-    try {
-
-        const historical = await getHistorical();
-        const dollarPrice = await getDollarBsPrice();
-
-        if( !dollarPrice ) throw null
+    do {
     
-        const result = { ...dollarPrice }
+        sockets.emit("updatingDollar");
 
-        result.differenceFromLastPrice = getDifferenceFromLastPrice(historical, dollarPrice);
+        try {
 
-        result.date = {
-            get time(){
-                const date = new Date();
-                return date.setHours(date.getHours(), 0, 0, 0)
-            },
-            get formatted(){
-                return new Date(this.time)
-                .toLocaleString("es-ES", {
-                    hour12: true, month: "2-digit",
-                    day: "numeric", year: "numeric",
-                    hour: "2-digit", minute: "2-digit",
-                })
+            const historical = await getHistorical();
+            const dollarPrice = await getDollarBsPrice();
+
+            if( !dollarPrice ) throw null
+        
+            const result = { ...dollarPrice }
+
+            result.differenceFromLastPrice = getDifferenceFromLastPrice(historical, dollarPrice);
+
+            result.date = {
+                get time(){
+                    const date = new Date();
+                    return date.setHours(date.getHours(), 0, 0, 0)
+                },
+                get formatted(){
+                    return new Date(this.time)
+                    .toLocaleString("es-ES", {
+                        hour12: true, month: "2-digit",
+                        day: "numeric", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
+                    })
+                }
             }
+
+            const newHistorical = [ result, ...historical ];
+            
+            await fs.writeFile(
+                historicalPath,
+                JSON.stringify(newHistorical, undefined, 4)
+            )
+
+            sockets.emit("dollarUpdated", newHistorical);
+            success = true;
+
+        } catch {
+            
+            sockets.emit("dollarUpdateFails", retry);
+            retry++;
+
+            await secs(3);
+        
         }
 
-        const newHistorical = [ result, ...historical ];
-        
-        await fs.writeFile(
-            historicalPath,
-            JSON.stringify(newHistorical, undefined, 4)
-        )
-
-        sockets.emit("dollarUpdated", result);
-
-    } catch { sockets.emit("dollarUpdateFails") }
+    } while( retry < maxRetry && !success )
 
 }
